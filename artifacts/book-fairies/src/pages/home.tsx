@@ -301,25 +301,90 @@ export default function Home() {
 
       {/* 7. Donate */}
       <section id="donate" className="py-24 px-6" style={{ background: `linear-gradient(to right, ${COLORS.blush}, ${COLORS.sky})` }}>
-        <div className="max-w-4xl mx-auto bg-white rounded-3xl p-10 md:p-16 text-center shadow-xl">
-          <BookOpen className="w-12 h-12 mx-auto text-[#ffa6cb] mb-6" />
-          <h2 className="font-serif text-4xl md:text-5xl text-[#3a2a35] mb-6">Help a Child Discover Stories</h2>
-          <p className="text-lg text-[#5a3e50] mb-8 leading-relaxed">
-            Your donations help children discover new stories, improve literacy skills, and develop a lifelong love of reading. We accept all books — children's books, early readers, middle school novels, and educational materials are always appreciated.
-          </p>
-          <div className="bg-[#fff5f8] text-[#3a2a35] p-6 rounded-2xl mb-10 border border-[#ffdae9]">
-            <p className="font-medium">
-              Book donation pickups happen on a monthly basis, available almost every Sunday. Sign the pickup form for your preferred date and let us take care of the rest!
+        <div className="max-w-4xl mx-auto bg-white rounded-3xl p-10 md:p-16 shadow-xl">
+          <div className="text-center mb-10">
+            <BookOpen className="w-12 h-12 mx-auto text-[#ffa6cb] mb-6" />
+            <h2 className="font-serif text-4xl md:text-5xl text-[#3a2a35] mb-4">Help a Child Discover Stories</h2>
+            <p className="text-lg text-[#5a3e50] leading-relaxed">
+              Your donations help children discover new stories, improve literacy skills, and develop a lifelong love of reading. We accept all books — children's books, early readers, middle school novels, and educational materials are always appreciated.
             </p>
           </div>
-          <Button 
-            asChild
-            size="lg" 
-            className="rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white px-10 h-14 text-lg font-semibold shadow-lg shadow-[#ffa6cb]/30"
-            data-testid="link-donate-email"
-          >
-            <a href="mailto:bookfairiesgeorgia@gmail.com">Contact Us to Donate</a>
-          </Button>
+
+          {/* Step system */}
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                step: "1",
+                title: "Find Books",
+                desc: "Gather any books for ages 4–16 — new or gently used. Children's books, early readers, middle school novels, and educational materials are all welcome.",
+                color: COLORS.pink,
+              },
+              {
+                step: "2",
+                title: "Schedule a Pickup",
+                desc: "Pickup locations must be in the Milton / Alpharetta area. Pickups are available almost every Sunday — sign the form for your preferred date.",
+                color: COLORS.blue,
+                highlight: true,
+              },
+              {
+                step: "3",
+                title: "We Handle the Rest",
+                desc: "That's it! Your books will be sorted and distributed directly to underserved schools and students across Fulton County.",
+                color: COLORS.lavender,
+              },
+            ].map((s) => (
+              <motion.div
+                key={s.step}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="rounded-2xl p-6 flex flex-col gap-3 border"
+                style={{
+                  borderColor: s.color,
+                  background: s.highlight ? `${s.color}18` : "#fafafa",
+                }}
+              >
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                  style={{ backgroundColor: s.color }}
+                >
+                  {s.step}
+                </div>
+                <h3 className="font-serif text-xl text-[#3a2a35]">{s.title}</h3>
+                {s.highlight && (
+                  <span className="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full text-white w-fit" style={{ backgroundColor: s.color }}>
+                    Milton / Alpharetta Area Only
+                  </span>
+                )}
+                <p className="text-[#5a3e50] text-sm leading-relaxed">{s.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              asChild
+              size="lg"
+              className="rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white px-10 h-14 text-base font-semibold shadow-lg shadow-[#ffa6cb]/30"
+              data-testid="link-pickup-form"
+            >
+              <a href="https://docs.google.com/forms/d/e/1FAIpQLSdzrZF9SlunOlqtGEx0u8JUyvZ_MrG_KsPEFxSjFN_dFTDxZg/viewform" target="_blank" rel="noopener noreferrer">
+                Schedule a Pickup
+              </a>
+            </Button>
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="rounded-full border-2 border-[#84caed] text-[#3a2a35] hover:bg-[#84caed] hover:text-white px-10 h-14 text-base font-semibold bg-transparent"
+              data-testid="link-request-books-form"
+            >
+              <a href="https://docs.google.com/forms/d/e/1FAIpQLScEBwegpIED_wqzXoCtpxj2ZuQLRsIo4itJ911LsKWIKIEMdw/viewform" target="_blank" rel="noopener noreferrer">
+                Request Books
+              </a>
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -374,6 +439,16 @@ export default function Home() {
           <p className="text-gray-300 text-lg mb-12 max-w-2xl mx-auto">
             Interested in donating, volunteering, or partnering with us? We'd love to hear from you and work together to expand literacy opportunities throughout the community.
           </p>
+          <div className="mb-8">
+            <a
+              href="mailto:bookfairiesgeorgia@gmail.com"
+              className="inline-flex items-center gap-3 text-[#ffa6cb] hover:text-white transition-colors text-lg font-medium"
+              data-testid="contact-email-address"
+            >
+              <Mail size={22} />
+              bookfairiesgeorgia@gmail.com
+            </a>
+          </div>
           <div className="flex flex-wrap justify-center gap-4">
             <a 
               href="mailto:bookfairiesgeorgia@gmail.com"
@@ -381,7 +456,7 @@ export default function Home() {
               data-testid="contact-email"
             >
               <Mail size={20} />
-              <span>Email Us</span>
+              <span>Send an Email</span>
             </a>
             <a 
               href="https://www.instagram.com/bookfairiesgeorgia"
