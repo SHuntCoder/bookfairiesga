@@ -123,53 +123,90 @@ export default function Home() {
 
       {/* 3. About */}
       <section id="about" className="py-24 bg-white relative">
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-6 space-y-20">
+
+          {/* Mission row */}
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <motion.div 
+            {/* Photo placeholder */}
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="rounded-3xl p-12 relative overflow-hidden shadow-xl"
-              style={{
-                background: `linear-gradient(135deg, ${COLORS.sky} 0%, ${COLORS.blush} 100%)`
-              }}
+              className="rounded-3xl overflow-hidden shadow-xl aspect-[4/3] flex items-center justify-center relative"
+              style={{ background: `linear-gradient(135deg, ${COLORS.blush} 0%, ${COLORS.sky} 60%, #f3e8ff 100%)` }}
             >
-              <Heart className="text-[#ffa6cb] w-12 h-12 mb-6" />
-              <blockquote className="font-serif text-2xl md:text-3xl text-[#3a2a35] leading-snug">
-                "Books inspire imagination, confidence, education, and opportunity — and every child deserves access to those opportunities."
-              </blockquote>
+              <div className="text-center p-10">
+                <div className="w-20 h-20 rounded-full bg-white/60 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <Users className="w-10 h-10 text-[#ffa6cb]" />
+                </div>
+                <p className="font-serif text-xl text-[#3a2a35] italic">Photo of our founders</p>
+                <p className="text-sm text-[#5a3e50] mt-2 font-medium">Marin DuMond &amp; Lauren Holbrook</p>
+              </div>
             </motion.div>
-            
+
+            {/* Mission text */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="space-y-6 text-[#5a3e50] text-lg leading-relaxed"
+              className="space-y-5 text-[#5a3e50] text-lg leading-relaxed"
             >
-              <h2 className="font-serif text-4xl text-[#3a2a35] mb-6">Our Story</h2>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#ffa6cb]">Our Mission</p>
+              <h2 className="font-serif text-4xl text-[#3a2a35]">About Us</h2>
               <p>
-                Book Fairies was founded by Marin DuMond and Lauren Holbrook with a shared goal of making reading more accessible to children throughout the community. 
+                Book Fairies is dedicated to expanding access to books and promoting literacy for children in underserved communities throughout Fulton County. By organizing book drives and community partnerships, we help place books directly into the hands of students who need them most.
+              </p>
+              <blockquote className="border-l-4 pl-5 font-serif text-xl text-[#3a2a35] italic" style={{ borderColor: COLORS.pink }}>
+                "We believe books inspire imagination, confidence, education, and opportunity — and every child deserves access to those opportunities."
+              </blockquote>
+            </motion.div>
+          </div>
+
+          {/* Founders row */}
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="space-y-5 text-[#5a3e50] text-lg leading-relaxed"
+            >
+              <p className="text-xs font-bold uppercase tracking-widest text-[#ffa6cb]">Meet the Founders</p>
+              <h2 className="font-serif text-4xl text-[#3a2a35]">Marin DuMond &amp; Lauren Holbrook</h2>
+              <p>
+                Book Fairies was founded by Marin DuMond and Lauren Holbrook with a shared goal of making reading more accessible to children throughout the community.
               </p>
               <p>
-                After recognizing that many students lacked access to books outside the classroom, we created Book Fairies to bridge that gap through donation drives, volunteer efforts, and community connections. 
+                After recognizing that many students lacked access to books outside the classroom, we created Book Fairies to help bridge that gap through donation drives, volunteer efforts, and community connections.
               </p>
               <p className="font-semibold text-[#3a2a35]">
                 Our mission is simple: help every child build a love for reading and create a joy for learning.
               </p>
-              
-              <div className="mt-8 flex items-center gap-4 bg-[#e0f5ff]/50 p-4 rounded-2xl border border-[#e0f5ff]">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-[#ffa6cb]">
-                  <Sparkles size={24} />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="rounded-3xl p-12 relative overflow-hidden shadow-xl flex flex-col justify-center"
+              style={{ background: `linear-gradient(135deg, ${COLORS.sky} 0%, ${COLORS.blush} 100%)` }}
+            >
+              <Heart className="text-[#ffa6cb] w-10 h-10 mb-6" />
+              <blockquote className="font-serif text-2xl text-[#3a2a35] leading-snug">
+                "Creating passion one page at a time."
+              </blockquote>
+              <div className="mt-8 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm text-[#ffa6cb]">
+                  <Sparkles size={20} />
                 </div>
-                <div>
-                  <p className="text-sm uppercase tracking-wider font-bold text-[#84caed]">Founders</p>
-                  <p className="font-serif text-xl text-[#3a2a35]">Marin DuMond & Lauren Holbrook</p>
-                </div>
+                <p className="font-medium text-[#5a3e50]">Book Fairies, Fulton County, GA</p>
               </div>
             </motion.div>
           </div>
+
         </div>
       </section>
 
@@ -200,7 +237,7 @@ export default function Home() {
               },
               {
                 title: "Literacy Advocacy",
-                desc: "We raise awareness about childhood literacy and the importance of equal access to educational resources across our community.",
+                desc: "We work to raise awareness about childhood literacy and the importance of equal access to educational resources.",
                 color: COLORS.gold
               }
             ].map((card, i) => (
@@ -226,10 +263,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {[
-              { stat: "100s", text: "Books donated to local schools" },
-              { stat: "Infinite", text: "Stories shared & imaginations sparked" },
+              { stat: "1,000s", text: "Books donated to local schools" },
+              { stat: "Growing", text: "Supporting underserved school communities" },
               { stat: "Many", text: "Student-led volunteer initiatives" },
-              { stat: "All", text: "Fulton County schools supported" }
+              { stat: "County-wide", text: "Expanding literacy opportunities across Fulton County" }
             ].map((item, i) => (
               <motion.div 
                 key={item.stat}
@@ -252,13 +289,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid md:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="font-serif text-4xl text-[#3a2a35] mb-8">Get Involved</h2>
+              <h2 className="font-serif text-4xl text-[#3a2a35] mb-4">Get Involved</h2>
+              <p className="text-[#5a3e50] text-lg leading-relaxed mb-8">Volunteers are essential to the Book Fairies mission. Whether you are helping collect books, organize donations, or participate in community outreach, your support helps us reach more students across the community.</p>
               <ul className="space-y-6">
                 {[
                   { text: "Organize a book drive in your school, neighborhood, or organization", color: COLORS.pink },
                   { text: "Sign up for a pickup — we'll handle the rest", color: COLORS.blue },
-                  { text: "Help sort and organize book donations at distribution events", color: COLORS.lavender },
-                  { text: "Promote literacy initiatives and spread the word on social media", color: COLORS.gold }
+                  { text: "Promote literacy initiatives in your community", color: COLORS.lavender },
+                  { text: "Support social media and outreach efforts", color: COLORS.gold }
                 ].map((item, i) => (
                   <motion.li 
                     key={i}
@@ -476,7 +514,7 @@ export default function Home() {
               data-testid="contact-facebook"
             >
               <Facebook size={20} />
-              <span>Facebook</span>
+              <span>@bookfairiesgeorgia</span>
             </a>
           </div>
         </div>
