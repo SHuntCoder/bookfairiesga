@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "IZVCTWBsnGRkGIKneljT0"
+uri = "file://book-fairies-website.tar.gz"
+type = "unspecified"
+title = "Book Fairies — HTML Export"
