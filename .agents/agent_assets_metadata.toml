@@ -6,3 +6,9 @@ id = "IZVCTWBsnGRkGIKneljT0"
 uri = "file://book-fairies-website.tar.gz"
 type = "unspecified"
 title = "Book Fairies — HTML Export"
+
+[[outputs]]
+id = "Anmv_bbqOGs3l4iH8wKx4"
+uri = "file://book-fairies-github.tar.gz"
+type = "unspecified"
+title = "Book Fairies — GitHub Pages Files"
