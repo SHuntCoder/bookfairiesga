@@ -1,0 +1,415 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Heart, 
+  BookOpen, 
+  Users, 
+  Sparkles,
+  ArrowRight,
+  Mail,
+  Facebook,
+  Instagram,
+  ChevronDown
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+
+const COLORS = {
+  pink: '#ffa6cb',
+  blue: '#84caed',
+  lavender: '#d7a9ff',
+  sky: '#e0f5ff',
+  blush: '#ffdae9',
+  dark: '#3a2a35',
+  text: '#5a3e50',
+  gold: '#c9a96e',
+};
+
+const NAV_LINKS = [
+  { name: 'About', href: '#about' },
+  { name: 'What We Do', href: '#what-we-do' },
+  { name: 'Volunteer', href: '#volunteer' },
+  { name: 'Donate', href: '#donate' },
+  { name: 'Contact', href: '#contact' },
+];
+
+export default function Home() {
+  return (
+    <div className="min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden">
+      
+      {/* 1. Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-md border-b border-white/20">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex flex-col">
+            <span className="font-serif text-2xl font-bold text-[#5a3e50] tracking-tight">Book Fairies</span>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-[#ffa6cb]">Fulton County, GA</span>
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <a 
+                key={link.name} 
+                href={link.href}
+                className="text-sm font-medium text-[#5a3e50] hover:text-[#ffa6cb] transition-colors"
+              >
+                {link.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      </nav>
+
+      {/* 2. Hero */}
+      <section 
+        id="hero" 
+        className="relative pt-32 pb-20 md:pt-48 md:pb-32 min-h-screen flex items-center justify-center overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${COLORS.blush} 0%, ${COLORS.sky} 50%, ${COLORS.lavender} 100%)`
+        }}
+      >
+        <div className="absolute inset-0 opacity-40 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] mix-blend-overlay pointer-events-none"></div>
+        
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 max-w-4xl mx-auto px-6 text-center flex flex-col items-center"
+        >
+          <span className="inline-block px-4 py-1.5 rounded-full bg-white/50 text-[#ffa6cb] text-xs font-bold uppercase tracking-widest mb-6">
+            Fulton County · Community Literacy Initiative
+          </span>
+          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl text-[#3a2a35] leading-tight mb-6">
+            Creating Passion<br />
+            <span className="italic text-[#ffa6cb] font-light">One Page at a Time</span>
+          </h1>
+          <p className="text-lg md:text-xl text-[#5a3e50] max-w-2xl mx-auto mb-10 leading-relaxed">
+            We collect and distribute books to underserved students and families across Fulton County school communities — because every child deserves the joy of reading.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Button 
+              size="lg" 
+              className="rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white px-8 h-14 text-base font-semibold shadow-lg shadow-[#ffa6cb]/30"
+              onClick={() => document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' })}
+              data-testid="button-donate-hero"
+            >
+              Donate Books
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="rounded-full border-2 border-[#5a3e50] text-[#5a3e50] hover:bg-[#5a3e50] hover:text-white px-8 h-14 text-base font-semibold bg-transparent"
+              onClick={() => document.getElementById('volunteer')?.scrollIntoView({ behavior: 'smooth' })}
+              data-testid="button-volunteer-hero"
+            >
+              Get Involved
+            </Button>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute right-10 top-32 text-[#ffa6cb] opacity-50 hidden lg:block"
+        >
+          <Sparkles size={64} />
+        </motion.div>
+        <motion.div 
+          animate={{ y: [0, 20, 0], rotate: [0, -10, 0] }}
+          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute left-20 bottom-32 text-[#d7a9ff] opacity-50 hidden lg:block"
+        >
+          <BookOpen size={48} />
+        </motion.div>
+      </section>
+
+      {/* 3. About */}
+      <section id="about" className="py-24 bg-white relative">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <motion.div 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="rounded-3xl p-12 relative overflow-hidden shadow-xl"
+              style={{
+                background: `linear-gradient(135deg, ${COLORS.sky} 0%, ${COLORS.blush} 100%)`
+              }}
+            >
+              <Heart className="text-[#ffa6cb] w-12 h-12 mb-6" />
+              <blockquote className="font-serif text-2xl md:text-3xl text-[#3a2a35] leading-snug">
+                "Books inspire imagination, confidence, education, and opportunity — and every child deserves access to those opportunities."
+              </blockquote>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="space-y-6 text-[#5a3e50] text-lg leading-relaxed"
+            >
+              <h2 className="font-serif text-4xl text-[#3a2a35] mb-6">Our Story</h2>
+              <p>
+                Book Fairies was founded by Marin DuMond and Lauren Holbrook with a shared goal of making reading more accessible to children throughout the community. 
+              </p>
+              <p>
+                After recognizing that many students lacked access to books outside the classroom, we created Book Fairies to bridge that gap through donation drives, volunteer efforts, and community connections. 
+              </p>
+              <p className="font-semibold text-[#3a2a35]">
+                Our mission is simple: help every child build a love for reading and create a joy for learning.
+              </p>
+              
+              <div className="mt-8 flex items-center gap-4 bg-[#e0f5ff]/50 p-4 rounded-2xl border border-[#e0f5ff]">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm text-[#ffa6cb]">
+                  <Sparkles size={24} />
+                </div>
+                <div>
+                  <p className="text-sm uppercase tracking-wider font-bold text-[#84caed]">Founders</p>
+                  <p className="font-serif text-xl text-[#3a2a35]">Marin DuMond & Lauren Holbrook</p>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. What We Do */}
+      <section id="what-we-do" className="py-24" style={{ background: `linear-gradient(to bottom, ${COLORS.sky}, #ffffff)` }}>
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="font-serif text-4xl md:text-5xl text-[#3a2a35] mb-6">What We Do</h2>
+            <p className="text-lg text-[#5a3e50]">Building stronger communities through the power of literacy and shared stories.</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                title: "Community Book Drives",
+                desc: "We organize book drives throughout schools, neighborhoods, and local organizations to collect new and gently used books for children of all ages.",
+                color: COLORS.pink
+              },
+              {
+                title: "Book Distribution",
+                desc: "Donated books are carefully sorted and distributed to underserved schools, community centers, and youth programs throughout Fulton County.",
+                color: COLORS.blue
+              },
+              {
+                title: "Volunteer Opportunities",
+                desc: "Students and community members can help organize donations, sort books, and support literacy events — and earn volunteer service hours.",
+                color: COLORS.lavender
+              },
+              {
+                title: "Literacy Advocacy",
+                desc: "We raise awareness about childhood literacy and the importance of equal access to educational resources across our community.",
+                color: COLORS.gold
+              }
+            ].map((card, i) => (
+              <motion.div
+                key={card.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 -translate-y-0 hover:-translate-y-2 border border-gray-100 relative overflow-hidden group"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1.5 w-full" style={{ backgroundColor: card.color }}></div>
+                <h3 className="font-serif text-xl font-semibold text-[#3a2a35] mb-4 mt-2">{card.title}</h3>
+                <p className="text-[#5a3e50] leading-relaxed text-sm">{card.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Impact */}
+      <section id="impact" className="py-24 bg-[#3a2a35] text-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+            {[
+              { stat: "100s", text: "Books donated to local schools" },
+              { stat: "Infinite", text: "Stories shared & imaginations sparked" },
+              { stat: "Many", text: "Student-led volunteer initiatives" },
+              { stat: "All", text: "Fulton County schools supported" }
+            ].map((item, i) => (
+              <motion.div 
+                key={item.stat}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="text-center"
+              >
+                <div className="font-serif text-4xl md:text-5xl lg:text-6xl text-[#ffa6cb] mb-4">{item.stat}</div>
+                <div className="text-sm md:text-base text-gray-300 uppercase tracking-wide font-medium leading-snug">{item.text}</div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Volunteer */}
+      <section id="volunteer" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="font-serif text-4xl text-[#3a2a35] mb-8">Get Involved</h2>
+              <ul className="space-y-6">
+                {[
+                  { text: "Organize a book drive in your school, neighborhood, or organization", color: COLORS.pink },
+                  { text: "Sign up for a pickup — we'll handle the rest", color: COLORS.blue },
+                  { text: "Help sort and organize book donations at distribution events", color: COLORS.lavender },
+                  { text: "Promote literacy initiatives and spread the word on social media", color: COLORS.gold }
+                ].map((item, i) => (
+                  <motion.li 
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex gap-4 text-lg text-[#5a3e50]"
+                  >
+                    <div className="mt-1.5 flex-shrink-0 w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
+                    <span>{item.text}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="rounded-3xl p-10 text-center shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${COLORS.lavender}22 0%, ${COLORS.blue}22 100%)` }}
+            >
+              <Users className="w-12 h-12 mx-auto text-[#84caed] mb-6" />
+              <h3 className="font-serif text-3xl text-[#3a2a35] mb-4">Earn Service Hours</h3>
+              <p className="text-[#5a3e50] mb-8 text-lg">
+                Students are welcome to volunteer with Book Fairies and earn community service hours through participation. Reach out to request opportunities.
+              </p>
+              <Button 
+                asChild
+                size="lg" 
+                className="w-full sm:w-auto rounded-full bg-[#84caed] hover:bg-[#6ab9e3] text-white px-8 h-14 text-base font-semibold"
+                data-testid="link-volunteer-email"
+              >
+                <a href="mailto:bookfairiesgeorgia@gmail.com">Email Us to Volunteer</a>
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Donate */}
+      <section id="donate" className="py-24 px-6" style={{ background: `linear-gradient(to right, ${COLORS.blush}, ${COLORS.sky})` }}>
+        <div className="max-w-4xl mx-auto bg-white rounded-3xl p-10 md:p-16 text-center shadow-xl">
+          <BookOpen className="w-12 h-12 mx-auto text-[#ffa6cb] mb-6" />
+          <h2 className="font-serif text-4xl md:text-5xl text-[#3a2a35] mb-6">Help a Child Discover Stories</h2>
+          <p className="text-lg text-[#5a3e50] mb-8 leading-relaxed">
+            Your donations help children discover new stories, improve literacy skills, and develop a lifelong love of reading. We accept all books — children's books, early readers, middle school novels, and educational materials are always appreciated.
+          </p>
+          <div className="bg-[#fff5f8] text-[#3a2a35] p-6 rounded-2xl mb-10 border border-[#ffdae9]">
+            <p className="font-medium">
+              Book donation pickups happen on a monthly basis, available almost every Sunday. Sign the pickup form for your preferred date and let us take care of the rest!
+            </p>
+          </div>
+          <Button 
+            asChild
+            size="lg" 
+            className="rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white px-10 h-14 text-lg font-semibold shadow-lg shadow-[#ffa6cb]/30"
+            data-testid="link-donate-email"
+          >
+            <a href="mailto:bookfairiesgeorgia@gmail.com">Contact Us to Donate</a>
+          </Button>
+        </div>
+      </section>
+
+      {/* 8. Partner */}
+      <section id="partner" className="py-24 bg-white text-center">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="font-serif text-4xl text-[#3a2a35] mb-6">Partner With Us</h2>
+          <p className="text-lg text-[#5a3e50] mb-10">
+            Book Fairies partners with schools, libraries, local businesses, and nonprofit organizations to expand access to books and educational resources. Together, we can help create brighter futures through literacy.
+          </p>
+          <Button 
+            asChild
+            variant="outline"
+            size="lg" 
+            className="rounded-full border-2 border-[#d7a9ff] text-[#3a2a35] hover:bg-[#d7a9ff] hover:text-white px-10 h-14 text-lg font-semibold bg-transparent"
+            data-testid="link-partner-email"
+          >
+            <a href="mailto:bookfairiesgeorgia@gmail.com">Become a Partner</a>
+          </Button>
+        </div>
+      </section>
+
+      {/* 9. FAQ */}
+      <section id="faq" className="py-24 bg-[#e0f5ff]">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="font-serif text-4xl text-[#3a2a35] text-center mb-12">Frequently Asked Questions</h2>
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {[
+              { q: "Where are the books donated?", a: "Books are distributed to underserved schools, students, and community organizations throughout Fulton County." },
+              { q: "Can students volunteer?", a: "Yes! Student volunteers are welcome and may earn community service hours through participation. Email bookfairiesgeorgia@gmail.com to request opportunities." },
+              { q: "What books are most needed?", a: "We take all books! Children's books, early readers, middle school novels, and educational materials are always appreciated." },
+              { q: "How can organizations partner with Book Fairies?", a: "Schools, businesses, and local organizations can contact us to organize donation drives or literacy initiatives." },
+              { q: "How do I donate books?", a: "Book donations drop on a monthly basis and are available almost all Sundays in the month. Sign the pickup form for your preferred date, and let us take care of the rest!" }
+            ].map((faq, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="bg-white rounded-2xl border-none shadow-sm px-6">
+                <AccordionTrigger className="text-[#3a2a35] hover:text-[#ffa6cb] font-medium text-left hover:no-underline py-6">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-[#5a3e50] pb-6 leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* 10. Contact & 11. Footer */}
+      <footer id="contact" className="bg-[#3a2a35] pt-24 pb-8 text-white relative border-t-8" style={{ borderTopColor: COLORS.pink }}>
+        <div className="max-w-4xl mx-auto px-6 text-center mb-24">
+          <h2 className="font-serif text-4xl md:text-5xl mb-6">Contact Book Fairies</h2>
+          <p className="text-gray-300 text-lg mb-12 max-w-2xl mx-auto">
+            Interested in donating, volunteering, or partnering with us? We'd love to hear from you and work together to expand literacy opportunities throughout the community.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <a 
+              href="mailto:bookfairiesgeorgia@gmail.com"
+              className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-600 hover:border-white hover:bg-white/10 transition-colors"
+              data-testid="contact-email"
+            >
+              <Mail size={20} />
+              <span>Email Us</span>
+            </a>
+            <a 
+              href="https://www.instagram.com/bookfairiesgeorgia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-600 hover:border-white hover:bg-white/10 transition-colors"
+              data-testid="contact-instagram"
+            >
+              <Instagram size={20} />
+              <span>@bookfairiesgeorgia</span>
+            </a>
+            <a 
+              href="https://www.facebook.com/bookfairiesgeorgia"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-6 py-3 rounded-full border border-gray-600 hover:border-white hover:bg-white/10 transition-colors"
+              data-testid="contact-facebook"
+            >
+              <Facebook size={20} />
+              <span>Facebook</span>
+            </a>
+          </div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500 border-t border-white/10 pt-8">
+          <p>© {new Date().getFullYear()} Book Fairies · Fulton County, Georgia · Creating Passion One Page at a Time</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
