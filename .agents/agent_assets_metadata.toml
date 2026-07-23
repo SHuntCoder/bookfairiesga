@@ -12,3 +12,9 @@ id = "Anmv_bbqOGs3l4iH8wKx4"
 uri = "file://book-fairies-github.tar.gz"
 type = "unspecified"
 title = "Book Fairies — GitHub Pages Files"
+
+[[outputs]]
+id = "eGF6F8aGzJt0EGu9Qof41"
+uri = "file://book-fairies-website.zip"
+type = "unspecified"
+title = "Book Fairies Website"
