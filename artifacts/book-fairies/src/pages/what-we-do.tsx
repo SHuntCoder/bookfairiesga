@@ -48,7 +48,7 @@ export default function WhatWeDo() {
 
       {/* Page header */}
       <section
-        className="pt-40 pb-20 text-center"
+        className="pt-24 md:pt-40 pb-20 text-center"
         style={{ background: `linear-gradient(to bottom, #e0f5ff, #ffffff)` }}
       >
         <div className="max-w-3xl mx-auto px-6">
@@ -119,7 +119,7 @@ export default function WhatWeDo() {
             <h2 className="font-serif text-3xl md:text-4xl text-white mb-3">Our Impact</h2>
             <p className="text-gray-400">Growing every single day.</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}

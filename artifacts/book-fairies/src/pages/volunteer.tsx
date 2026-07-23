@@ -20,7 +20,7 @@ export default function Volunteer() {
 
       {/* Page header */}
       <section
-        className="pt-40 pb-20 text-center"
+        className="pt-24 md:pt-40 pb-20 text-center"
         style={{ background: `linear-gradient(to bottom, ${COLORS.sky}, #ffffff)` }}
       >
         <div className="max-w-3xl mx-auto px-6">

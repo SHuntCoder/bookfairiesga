@@ -17,7 +17,7 @@ export default function BookClub() {
 
       {/* Page header */}
       <section
-        className="pt-40 pb-20 text-center relative overflow-hidden"
+        className="pt-24 md:pt-40 pb-20 text-center relative overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${COLORS.lavender}55 0%, ${COLORS.blush} 60%, ${COLORS.sky} 100%)` }}
       >
         <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] pointer-events-none" />

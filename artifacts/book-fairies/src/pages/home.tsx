@@ -17,7 +17,7 @@ const COLORS = {
 
 export default function Home() {
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden">
+    <div className="min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden pt-16 md:pt-20">
       <Nav />
 
       {/* Hero */}
@@ -36,7 +36,7 @@ export default function Home() {
           <span className="inline-block px-4 py-1.5 rounded-full bg-white/50 text-[#ffa6cb] text-xs font-bold uppercase tracking-widest mb-6">
             Fulton County · Community Literacy Initiative
           </span>
-          <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl text-[#3a2a35] leading-tight mb-6">
+          <h1 className="font-serif text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-[#3a2a35] leading-tight mb-6">
             Creating Passion<br />
             <span className="italic text-[#ffa6cb] font-light">One Page at a Time</span>
           </h1>

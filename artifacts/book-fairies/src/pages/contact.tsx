@@ -15,7 +15,7 @@ export default function Contact() {
       <Nav />
 
       <section
-        className="pt-40 pb-20 text-center"
+        className="pt-24 md:pt-40 pb-20 text-center"
         style={{ background: `linear-gradient(135deg, ${COLORS.blush} 0%, ${COLORS.sky} 100%)` }}
       >
         <div className="max-w-3xl mx-auto px-6">

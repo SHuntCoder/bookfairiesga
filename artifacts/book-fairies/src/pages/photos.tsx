@@ -309,7 +309,7 @@ export default function Photos() {
       </AnimatePresence>
 
       {/* Page header */}
-      <section className="pt-40 pb-16 text-center" style={{ background: 'linear-gradient(to bottom, #ffdae9, #ffffff)' }}>
+      <section className="pt-24 md:pt-40 pb-16 text-center" style={{ background: 'linear-gradient(to bottom, #ffdae9, #ffffff)' }}>
         <div className="max-w-3xl mx-auto px-6">
           <span className="inline-block px-4 py-1.5 rounded-full bg-white text-[#ffa6cb] text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
             Our Work
