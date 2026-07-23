@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import { viteSingleFile } from "vite-plugin-singlefile";
 
 const rawPort = process.env.PORT;
 
@@ -44,7 +45,7 @@ export default defineConfig({
             m.devBanner(),
           ),
         ]
-      : []),
+      : [viteSingleFile()]),
   ],
   resolve: {
     alias: {
@@ -57,6 +58,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    assetsInlineLimit: 100_000_000,
   },
   server: {
     port,

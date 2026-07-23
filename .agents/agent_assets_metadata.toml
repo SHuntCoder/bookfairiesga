@@ -18,3 +18,9 @@ id = "eGF6F8aGzJt0EGu9Qof41"
 uri = "file://book-fairies-website.zip"
 type = "unspecified"
 title = "Book Fairies Website — bookfairiesga"
+
+[[outputs]]
+id = "yn0cjlU5AQGTA1-Z1yItb"
+uri = "file://artifacts/book-fairies/dist/public/index.html"
+type = "unspecified"
+title = "index.html — Book Fairies"
