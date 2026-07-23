@@ -281,39 +281,13 @@ export default function Photos() {
       {/* Gallery */}
       <section className="py-16 bg-white flex-1">
         <div className="max-w-7xl mx-auto px-6">
-          {(uploadedPhotos.length === 0) ? (
-            // Only founders photo, centered nicely
-            <div className="flex justify-center">
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="rounded-3xl overflow-hidden shadow-xl max-w-sm w-full"
-              >
-                <img src="/founders.jpg" alt="Book Fairies founders" className="w-full h-auto object-contain" />
-                <div className="bg-white px-6 py-4">
-                  <p className="font-serif text-base text-[#3a2a35] font-medium">Our Founders</p>
-                  <p className="text-sm text-[#5a3e50]">Marin &amp; Lauren</p>
-                </div>
-              </motion.div>
+          {uploadedPhotos.length === 0 ? (
+            <div className="text-center py-20 text-[#5a3e50]">
+              <p className="font-serif text-2xl text-[#3a2a35] mb-3">Photos coming soon</p>
+              <p className="text-base">Check back here for photos from our book drives and events!</p>
             </div>
           ) : (
-            // Masonry grid when there are photos
             <div className="columns-2 md:columns-3 gap-4 md:gap-6 space-y-4 md:space-y-6">
-              {/* Founders always first */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="break-inside-avoid rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
-              >
-                <img src="/founders.jpg" alt="Book Fairies founders" className="w-full h-auto object-contain" />
-                <div className="bg-white px-4 py-3">
-                  <p className="font-serif text-sm text-[#3a2a35] font-medium">Our Founders</p>
-                  <p className="text-xs text-[#5a3e50]">Marin &amp; Lauren</p>
-                </div>
-              </motion.div>
-
               {uploadedPhotos.map((photo, i) => (
                 <motion.div
                   key={photo.id}
