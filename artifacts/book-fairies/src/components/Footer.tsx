@@ -9,6 +9,7 @@ export default function Footer({ devAuthed, onDevClick }: FooterProps) {
   return (
     <footer id="contact" className="bg-[#3a2a35] pt-20 pb-8 text-white border-t-8 border-[#ffa6cb]">
       <div className="max-w-4xl mx-auto px-6 text-center mb-16">
+        <img src="/logo-transparent.png" alt="Book Fairies" className="w-16 h-16 object-contain mx-auto mb-6 opacity-80" />
         <h2 className="font-serif text-4xl md:text-5xl mb-6">Contact Book Fairies</h2>
         <p className="text-gray-300 text-lg mb-10 max-w-2xl mx-auto">
           Interested in donating, volunteering, or partnering with us? We'd love to hear from you.
