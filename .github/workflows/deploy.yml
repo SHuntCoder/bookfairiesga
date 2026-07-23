@@ -6,16 +6,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,26 +33,18 @@ jobs:
         run: pnpm --filter @workspace/book-fairies run build
         env:
           PORT: 3000
-          BASE_PATH: /bookfairiesga/
+          BASE_PATH: /
           NODE_ENV: production
 
-      - name: Prepare Pages output
+      - name: Prepare deploy files
         run: |
           cp artifacts/book-fairies/dist/public/index.html artifacts/book-fairies/dist/public/404.html
           touch artifacts/book-fairies/dist/public/.nojekyll
+          echo "bookfairiesga.com" > artifacts/book-fairies/dist/public/CNAME
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: artifacts/book-fairies/dist/public
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: artifacts/book-fairies/dist/public
+          force_orphan: true
