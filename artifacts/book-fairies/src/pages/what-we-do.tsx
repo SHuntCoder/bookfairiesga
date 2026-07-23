@@ -30,7 +30,8 @@ function useCountUp(target: number, duration = 2000, start = false) {
 export default function WhatWeDo() {
   const counterRef = useRef<HTMLDivElement>(null);
   const [counterVisible, setCounterVisible] = useState(false);
-  const bookCount = useCountUp(4000, 2200, counterVisible);
+  const stored = typeof window !== 'undefined' ? Number(localStorage.getItem('bookfairies_book_count') || 4000) : 4000;
+  const bookCount = useCountUp(stored, 2200, counterVisible);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -130,7 +131,7 @@ export default function WhatWeDo() {
                 {bookCount.toLocaleString()}+
               </div>
               <div className="text-sm md:text-base text-gray-300 uppercase tracking-wide font-medium leading-snug">
-                Books collected &amp; counting
+                Books collected
               </div>
             </motion.div>
             {[

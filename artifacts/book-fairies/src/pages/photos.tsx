@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Instagram, Lock, X, Upload, Trash2, Eye, EyeOff, ImagePlus, CheckCircle } from 'lucide-react';
+import { Camera, Instagram, Lock, X, Upload, Trash2, Eye, EyeOff, ImagePlus, CheckCircle, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
@@ -85,6 +85,22 @@ function DevPanel({ photos, onAddPhoto, onDeletePhoto, onClose }: {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Book count
+  const [bookCountInput, setBookCountInput] = useState<string>(
+    () => localStorage.getItem('bookfairies_book_count') || '4000'
+  );
+  const [countSaved, setCountSaved] = useState(false);
+
+  const saveBookCount = () => {
+    const num = parseInt(bookCountInput.replace(/,/g, ''), 10);
+    if (!isNaN(num) && num >= 0) {
+      localStorage.setItem('bookfairies_book_count', String(num));
+      setBookCountInput(num.toLocaleString());
+      setCountSaved(true);
+      setTimeout(() => setCountSaved(false), 2000);
+    }
+  };
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -208,6 +224,33 @@ function DevPanel({ photos, onAddPhoto, onDeletePhoto, onClose }: {
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* Book count editor */}
+          <div>
+            <h4 className="font-semibold text-[#3a2a35] mb-4 flex items-center gap-2">
+              <BookOpen size={18} className="text-[#c9a96e]" />
+              Books Collected Counter
+            </h4>
+            <p className="text-sm text-[#5a3e50] mb-3">Update the number shown on the "What We Do" page.</p>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={bookCountInput}
+                onChange={e => { setBookCountInput(e.target.value); setCountSaved(false); }}
+                onKeyDown={e => e.key === 'Enter' && saveBookCount()}
+                placeholder="e.g. 4000"
+                className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-[#3a2a35] focus:outline-none focus:border-[#c9a96e] text-base"
+              />
+              <Button onClick={saveBookCount} className="rounded-xl bg-[#c9a96e] hover:bg-[#b8935a] text-white px-6 h-12 font-semibold">
+                Save
+              </Button>
+            </div>
+            {countSaved && (
+              <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-2 flex items-center gap-2 text-green-600 text-sm font-medium">
+                <CheckCircle size={15} /> Counter updated!
+              </motion.div>
             )}
           </div>
 
