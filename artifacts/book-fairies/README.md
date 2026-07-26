@@ -47,21 +47,25 @@ The site includes a hidden developer panel for content management — no backend
 
 1. Scroll to the footer on any page
 2. Click the small **Developer Login** link (bottom center)
-3. Enter the password
+3. Enter the password: `BookFairiesGA123`
 
 Once authenticated you can:
 
-- **Upload photos** to the community gallery (stored in `localStorage`)
+- **Upload photos** to the community gallery — committed directly to GitHub, visible to everyone within ~2 minutes
+- **Delete photos** from the gallery — removes the entry from `gallery.json` and deletes the image file
 - **Update the book counter** displayed on the What We Do page
-- **Delete photos** from the gallery
 
-> **Note:** Content is stored in the visitor's browser `localStorage`. The dev panel is intended to be used by an admin on the production site to populate content that then persists for that browser session. For persistent shared content, photos and the book count would need to be migrated to a backend or CMS.
+### How content is stored
 
-**localStorage keys used:**
-| Key | Default | Description |
-|-----|---------|-------------|
-| `bookfairies_book_count` | `4000` | Number shown in the animated counter |
-| `bookfairies_gallery_photos` | `[]` | Array of uploaded gallery photos (base64) |
+Photos and the book counter are stored directly in the GitHub repo via the GitHub API — no backend required.
+
+| File | Purpose |
+|------|---------|
+| `artifacts/book-fairies/src/gallery.json` | List of gallery photos (src URL + caption) |
+| `artifacts/book-fairies/src/book-count.json` | Current book counter value |
+| `artifacts/book-fairies/public/gallery/` | Uploaded image files |
+
+Changes appear on the live site within 1–5 minutes (GitHub CDN propagation).
 
 ---
 
@@ -129,14 +133,18 @@ artifacts/book-fairies/
 │   │   ├── Nav.tsx          # Fixed nav bar + mobile hamburger drawer
 │   │   ├── Footer.tsx       # Footer + contact links + dev panel trigger
 │   │   └── ScrollToTop.tsx  # Scrolls to top on every route change
+│   ├── lib/
+│   │   └── errors.ts        # BF error code definitions
 │   ├── pages/
 │   │   ├── home.tsx
-│   │   ├── what-we-do.tsx   # Animated book counter
-│   │   ├── photos.tsx       # Photo gallery + dev upload panel
+│   │   ├── what-we-do.tsx   # Animated book counter (fetches book-count.json)
+│   │   ├── photos.tsx       # Photo gallery + dev upload/delete panel
 │   │   ├── book-club.tsx
 │   │   ├── volunteer.tsx
 │   │   ├── donate.tsx
 │   │   └── contact.tsx
+│   ├── gallery.json         # Live gallery photo list
+│   ├── book-count.json      # Live book counter value
 │   ├── App.tsx              # Router + providers
 │   └── main.tsx
 ├── index.html
@@ -144,6 +152,27 @@ artifacts/book-fairies/
 ├── tsconfig.json
 └── package.json
 ```
+
+---
+
+## Error Codes
+
+All errors shown in the dev panel follow the format **BF-XXX** (Book Fairies). When someone reports a code, look it up here.
+
+| Code | Meaning | Fix |
+|------|---------|-----|
+| **BF-101** | Incorrect password | Password is `BookFairiesGA123` |
+| **BF-201** | Gallery photos won't load | Check [githubstatus.com](https://githubstatus.com); verify `gallery.json` is valid JSON |
+| **BF-202** | Photo upload failed | Token may be expired — check `VITE_GITHUB_TOKEN` in Replit secrets |
+| **BF-203** | Photo delete failed | Wait 30 sec and retry; check token if recurring |
+| **BF-204** | Gallery list update failed | Rare race condition — wait a minute and retry |
+| **BF-301** | Book count won't load | Verify `book-count.json` exists in the repo |
+| **BF-302** | Book count save failed | Token likely expired — check Replit secrets |
+| **BF-401** | GitHub API error | Read the detail shown — "Bad credentials" means renew the token |
+| **BF-402** | Conflict, all retries failed | Only one person should use the dev panel at a time |
+| **BF-403** | Network unreachable | Check internet connection |
+
+Full reference with step-by-step troubleshooting: [`ERROR_CODES.md`](./ERROR_CODES.md)
 
 ---
 
