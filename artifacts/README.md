@@ -45,36 +45,23 @@ The site includes a hidden developer panel for content management — no backend
 
 ### Accessing the Developer Panel
 
-1. Go to the **Photos** page (`/photos`)
-2. Scroll to the footer and click **Developer Login**
-3. Enter the site password
-4. Enter your **GitHub Personal Access Token** (needs `repo` scope)
-   - [Create one here](https://github.com/settings/tokens/new?description=Book+Fairies+Photos&scopes=repo) — takes 30 seconds
-   - The token is saved only for your current browser session
+1. Scroll to the footer on any page
+2. Click the small **Developer Login** link (bottom center)
+3. Enter the password
 
 Once authenticated you can:
 
-- **Upload photos** to the community gallery — committed directly to GitHub and **live for everyone immediately on refresh** (no deploy wait)
-- **Remove photos** from the gallery — removes them from the live site on refresh
+- **Upload photos** to the community gallery (stored in `localStorage`)
 - **Update the book counter** displayed on the What We Do page
+- **Delete photos** from the gallery
 
-### How Photo Publishing Works
+> **Note:** Content is stored in the visitor's browser `localStorage`. The dev panel is intended to be used by an admin on the production site to populate content that then persists for that browser session. For persistent shared content, photos and the book count would need to be migrated to a backend or CMS.
 
-Photos uploaded through the dev panel are committed to the GitHub repository via the GitHub API:
-
-1. The image file is uploaded to `artifacts/book-fairies/public/gallery/` in the repo
-2. `artifacts/book-fairies/src/gallery.json` is updated with the new photo entry
-3. The image is immediately served from GitHub's CDN (`raw.githubusercontent.com`) — **visible to all visitors on page refresh within seconds**, before the GitHub Actions deploy even finishes
-4. After ~2 minutes, GitHub Actions rebuilds and deploys the site, and images are also served from the custom domain
-
-### Book Counter
-
-The animated book counter on the **What We Do** page reads from your browser's `localStorage`. To update it:
-1. Open the developer panel
-2. Type the new number in the "Books Collected Counter" field and click **Save**
-3. Refresh the What We Do page to see it
-
-> The book count is stored per-browser. To make it consistent for all visitors, update the default value in `artifacts/book-fairies/src/pages/what-we-do.tsx` (look for `|| 4000`) and push to GitHub.
+**localStorage keys used:**
+| Key | Default | Description |
+|-----|---------|-------------|
+| `bookfairies_book_count` | `4000` | Number shown in the animated counter |
+| `bookfairies_gallery_photos` | `[]` | Array of uploaded gallery photos (base64) |
 
 ---
 
@@ -109,19 +96,6 @@ PORT=3000 BASE_PATH=/ pnpm --filter @workspace/book-fairies run build
 
 Output goes to `artifacts/book-fairies/dist/public/`.
 
-### Adding Photos Manually (Alternative)
-
-Instead of the dev panel, you can add photos directly:
-
-1. Copy your image into `artifacts/book-fairies/public/gallery/`
-2. Add an entry to `artifacts/book-fairies/src/gallery.json`:
-   ```json
-   [
-     { "src": "/gallery/your-photo.jpg", "caption": "Book Drive 2024" }
-   ]
-   ```
-3. Commit and push — GitHub Actions deploys automatically in ~2 minutes
-
 ---
 
 ## Deployment
@@ -137,28 +111,28 @@ The workflow (`.github/workflows/deploy.yml`):
 
 **DNS:** The custom domain points to GitHub Pages IPs. HTTPS is enforced via GitHub's Let's Encrypt integration.
 
+To trigger a manual deploy, push any change to `main` — or go to **Actions** → **Deploy to GitHub Pages** → **Run workflow**.
+
 ---
 
 ## Project Structure
 
 ```
 artifacts/book-fairies/
-├── public/
-│   ├── gallery/             # Photo gallery images (committed via dev panel or manually)
+├── public/                  # Static assets (logos, photos, favicon)
 │   ├── favicon.png          # Butterfly favicon
 │   ├── logo-transparent.png # Nav/footer logo
 │   ├── founders.jpg         # Founders photo (home page)
 │   └── opengraph.jpg        # Social share image
 ├── src/
-│   ├── gallery.json         # Gallery photo list — updated by dev panel via GitHub API
 │   ├── components/
 │   │   ├── Nav.tsx          # Fixed nav bar + mobile hamburger drawer
-│   │   ├── Footer.tsx       # Footer + contact links + Developer Login trigger
+│   │   ├── Footer.tsx       # Footer + contact links + dev panel trigger
 │   │   └── ScrollToTop.tsx  # Scrolls to top on every route change
 │   ├── pages/
 │   │   ├── home.tsx
-│   │   ├── what-we-do.tsx   # Animated book counter (reads from localStorage)
-│   │   ├── photos.tsx       # Gallery + dev panel (GitHub API photo management)
+│   │   ├── what-we-do.tsx   # Animated book counter
+│   │   ├── photos.tsx       # Photo gallery + dev upload panel
 │   │   ├── book-club.tsx
 │   │   ├── volunteer.tsx
 │   │   ├── donate.tsx

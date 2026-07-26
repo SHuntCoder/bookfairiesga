@@ -2,16 +2,17 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Instagram, X, ChevronLeft, ChevronRight,
-  Lock, Eye, EyeOff, Upload, CheckCircle, Loader2, ImagePlus, AlertCircle,
+  Lock, Eye, EyeOff, Upload, CheckCircle, Loader2,
+  ImagePlus, AlertCircle, Camera, BookOpen, Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
 
 // ── GitHub config ─────────────────────────────────────────────────────────────
-const OWNER   = 'SHuntCoder';
-const REPO    = 'bookfairiesga';
-const BRANCH  = 'main';
+const OWNER        = 'SHuntCoder';
+const REPO         = 'bookfairiesga';
+const BRANCH       = 'main';
 const GALLERY_JSON = 'artifacts/book-fairies/src/gallery.json';
 const GALLERY_DIR  = 'artifacts/book-fairies/public/gallery';
 
@@ -19,15 +20,16 @@ const RAW = (path: string) =>
   `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${path}`;
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-const DEV_PASSWORD   = 'BookFairiesGA123';
-const SESSION_KEY    = 'bf_gh_token';
+const DEV_PASSWORD = 'BookFairiesGA123';
+const SESSION_KEY  = 'bf_gh_token';
 
 function getStoredToken() { return sessionStorage.getItem(SESSION_KEY) ?? ''; }
 function storeToken(t: string) { sessionStorage.setItem(SESSION_KEY, t); }
 
-// ── GitHub API helpers ────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 interface GalleryPhoto { src: string; caption: string; }
 
+// ── GitHub API helpers ────────────────────────────────────────────────────────
 async function fetchGallery(): Promise<GalleryPhoto[]> {
   try {
     const resp = await fetch(`${RAW(GALLERY_JSON)}?t=${Date.now()}`);
@@ -69,15 +71,22 @@ function toBase64(str: string) {
   return btoa(bin);
 }
 
+async function getGalleryJson(token: string): Promise<{ sha: string; photos: GalleryPhoto[] }> {
+  const data = await githubGet(token, GALLERY_JSON);
+  let photos: GalleryPhoto[] = [];
+  try { photos = JSON.parse(atob(data.content.replace(/\n/g, ''))); } catch {}
+  return { sha: data.sha, photos };
+}
+
 // ── Dev Login Modal ───────────────────────────────────────────────────────────
 function DevLoginModal({
   onSuccess, onClose,
 }: { onSuccess: (token: string) => void; onClose: () => void }) {
-  const [password, setPassword]   = useState('');
-  const [token, setToken]         = useState(getStoredToken);
-  const [showPw, setShowPw]       = useState(false);
-  const [showTk, setShowTk]       = useState(false);
-  const [error, setError]         = useState('');
+  const [password, setPassword] = useState('');
+  const [token, setToken]       = useState(getStoredToken);
+  const [showPw, setShowPw]     = useState(false);
+  const [showTk, setShowTk]     = useState(false);
+  const [error, setError]       = useState('');
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,9 +112,8 @@ function DevLoginModal({
             <Lock size={22} className="text-[#ffa6cb]" />
           </div>
           <h3 className="font-serif text-2xl text-[#3a2a35]">Developer Login</h3>
-          <p className="text-sm text-[#5a3e50] mt-1">Sign in to manage site photos</p>
+          <p className="text-sm text-[#5a3e50] mt-1">Enter your password to manage site photos</p>
         </div>
-
         <form onSubmit={submit} className="space-y-3">
           {/* Password */}
           <div className="relative">
@@ -121,7 +129,6 @@ function DevLoginModal({
               {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-
           {/* GitHub token */}
           <div className="relative">
             <input
@@ -135,7 +142,6 @@ function DevLoginModal({
               {showTk ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-
           <p className="text-xs text-gray-400 leading-relaxed">
             Need a token?{' '}
             <a
@@ -145,15 +151,13 @@ function DevLoginModal({
             >
               Create one on GitHub
             </a>
-            {' '}with <strong>repo</strong> scope. It's saved only in this browser session.
+            {' '}with <strong>repo</strong> scope. Saved only for this browser session.
           </p>
-
           {error && (
             <p className="text-red-500 text-sm text-center flex items-center justify-center gap-1">
               <AlertCircle size={14} />{error}
             </p>
           )}
-
           <Button type="submit" size="lg" className="w-full rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white h-12 font-semibold">
             Sign In
           </Button>
@@ -163,24 +167,39 @@ function DevLoginModal({
   );
 }
 
-// ── Dev Upload Panel ──────────────────────────────────────────────────────────
-type UploadStatus = 'idle' | 'uploading' | 'done' | 'error';
-
+// ── Dev Panel ─────────────────────────────────────────────────────────────────
 function DevPanel({
-  token, onClose, onPhotoAdded,
-}: { token: string; onClose: () => void; onPhotoAdded: (p: GalleryPhoto) => void }) {
-  const [caption, setCaption]   = useState('');
-  const [preview, setPreview]   = useState<string | null>(null);
-  const [rawFile, setRawFile]   = useState<File | null>(null);
-  const [status, setStatus]     = useState<UploadStatus>('idle');
-  const [errorMsg, setErrorMsg] = useState('');
+  token, photos, onAddPhoto, onDeletePhoto, onClose,
+}: {
+  token: string;
+  photos: GalleryPhoto[];
+  onAddPhoto: (p: GalleryPhoto) => void;
+  onDeletePhoto: (src: string) => void;
+  onClose: () => void;
+}) {
+  // Photo upload state
+  const [caption, setCaption]     = useState('');
+  const [preview, setPreview]     = useState<string | null>(null);
+  const [rawFile, setRawFile]     = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadOk, setUploadOk]   = useState(false);
+  const [uploadErr, setUploadErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Delete state
+  const [deleting, setDeleting]   = useState<string | null>(null);
+
+  // Book count state
+  const [bookCountInput, setBookCountInput] = useState<string>(
+    () => localStorage.getItem('bookfairies_book_count') || '4000'
+  );
+  const [countSaved, setCountSaved] = useState(false);
 
   const loadFile = (file: File) => {
     if (!file.type.startsWith('image/')) return;
     setRawFile(file);
-    setStatus('idle');
-    setErrorMsg('');
+    setUploadOk(false);
+    setUploadErr('');
     const reader = new FileReader();
     reader.onload = ev => setPreview(ev.target?.result as string);
     reader.readAsDataURL(file);
@@ -197,57 +216,69 @@ function DevPanel({
     if (f) loadFile(f);
   }, []);
 
-  const upload = async () => {
+  const handleUpload = async () => {
     if (!preview || !rawFile) return;
-    setStatus('uploading');
-    setErrorMsg('');
+    setUploading(true);
+    setUploadErr('');
     try {
-      // 1. Build filename & pure base64 for image
+      // 1. Upload image file to GitHub
       const ext      = rawFile.name.split('.').pop() ?? 'jpg';
       const filename = `${Date.now()}.${ext}`;
-      const imgBase64 = preview.split(',')[1]; // strip data:...;base64,
+      const imgBase64 = preview.split(',')[1];
+      await githubPut(token, `${GALLERY_DIR}/${filename}`, imgBase64, `Add gallery photo: ${filename}`);
 
-      // 2. Upload the image file to GitHub
-      await githubPut(
-        token,
-        `${GALLERY_DIR}/${filename}`,
-        imgBase64,
-        `Add gallery photo: ${filename}`,
-      );
-
-      // 3. Read current gallery.json (get SHA so we can update it)
-      const current = await githubGet(token, GALLERY_JSON);
-      const currentSha: string = current.sha;
-      let currentPhotos: GalleryPhoto[] = [];
-      try {
-        currentPhotos = JSON.parse(atob(current.content.replace(/\n/g, '')));
-      } catch { /* file might be empty */ }
-
-      // 4. Build the new entry — raw GitHub URL is live immediately
+      // 2. Update gallery.json
+      const { sha, photos: existing } = await getGalleryJson(token);
       const newPhoto: GalleryPhoto = {
         src: RAW(`${GALLERY_DIR}/${filename}`),
         caption: caption.trim() || 'Book Fairies',
       };
-
-      // 5. Update gallery.json
-      const updatedPhotos = [...currentPhotos, newPhoto];
       await githubPut(
-        token,
-        GALLERY_JSON,
-        toBase64(JSON.stringify(updatedPhotos, null, 2)),
-        'Update gallery.json with new photo',
-        currentSha,
+        token, GALLERY_JSON,
+        toBase64(JSON.stringify([...existing, newPhoto], null, 2)),
+        'Update gallery.json with new photo', sha,
       );
 
-      setStatus('done');
-      onPhotoAdded(newPhoto);
+      onAddPhoto(newPhoto);
       setPreview(null);
       setRawFile(null);
       setCaption('');
       if (fileRef.current) fileRef.current.value = '';
+      setUploadOk(true);
+      setTimeout(() => setUploadOk(false), 3000);
     } catch (err) {
-      setStatus('error');
-      setErrorMsg(err instanceof Error ? err.message : 'Upload failed. Check your token and try again.');
+      setUploadErr(err instanceof Error ? err.message : 'Upload failed. Check your token.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDelete = async (src: string) => {
+    setDeleting(src);
+    try {
+      const { sha, photos: existing } = await getGalleryJson(token);
+      const updated = existing.filter(p => p.src !== src);
+      await githubPut(
+        token, GALLERY_JSON,
+        toBase64(JSON.stringify(updated, null, 2)),
+        'Remove photo from gallery.json', sha,
+      );
+      onDeletePhoto(src);
+    } catch {
+      // silently ignore — optimistic UI still removes from state via onDeletePhoto
+      onDeletePhoto(src);
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const saveBookCount = () => {
+    const num = parseInt(bookCountInput.replace(/,/g, ''), 10);
+    if (!isNaN(num) && num >= 0) {
+      localStorage.setItem('bookfairies_book_count', String(num));
+      setBookCountInput(num.toLocaleString());
+      setCountSaved(true);
+      setTimeout(() => setCountSaved(false), 2000);
     }
   };
 
@@ -257,106 +288,156 @@ function DevPanel({
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 40 }}
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
       >
+        {/* Header */}
         <div className="sticky top-0 bg-white rounded-t-3xl flex items-center justify-between px-8 py-5 border-b border-gray-100 z-10">
           <div>
-            <h3 className="font-serif text-2xl text-[#3a2a35]">Add a Photo</h3>
-            <p className="text-xs text-[#5a3e50] mt-0.5">Goes live for everyone within seconds</p>
+            <h3 className="font-serif text-2xl text-[#3a2a35]">Photo Manager</h3>
+            <p className="text-xs text-[#5a3e50] mt-0.5">Developer panel · Book Fairies</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1">
             <X size={22} />
           </button>
         </div>
 
-        <div className="p-8 space-y-6">
-          {/* Drop zone */}
-          <div
-            className="border-2 border-dashed border-[#ffa6cb]/40 rounded-2xl p-6 text-center cursor-pointer hover:border-[#ffa6cb] hover:bg-[#ffdae9]/10 transition-all"
-            onClick={() => fileRef.current?.click()}
-            onDrop={handleDrop}
-            onDragOver={e => e.preventDefault()}
-          >
-            {preview ? (
-              <div className="space-y-2">
-                <img src={preview} alt="Preview" className="w-full max-h-52 object-cover rounded-xl mx-auto" />
-                <p className="text-xs text-gray-400">Click to choose a different image</p>
-              </div>
-            ) : (
-              <div className="py-4">
-                <Upload className="mx-auto text-[#ffa6cb] mb-3" size={32} />
-                <p className="text-[#5a3e50] font-medium">Click to upload or drag &amp; drop</p>
-                <p className="text-sm text-gray-400 mt-1">JPG, PNG, WEBP</p>
+        <div className="p-8 space-y-8">
+          {/* ── Add a New Photo ── */}
+          <div>
+            <h4 className="font-semibold text-[#3a2a35] mb-4 flex items-center gap-2">
+              <ImagePlus size={18} className="text-[#ffa6cb]" />
+              Add a New Photo
+            </h4>
+            <div
+              className="border-2 border-dashed border-[#ffa6cb]/40 rounded-2xl p-6 text-center cursor-pointer hover:border-[#ffa6cb] hover:bg-[#ffdae9]/10 transition-all"
+              onClick={() => fileRef.current?.click()}
+              onDrop={handleDrop}
+              onDragOver={e => e.preventDefault()}
+            >
+              {preview ? (
+                <div className="space-y-3">
+                  <img src={preview} alt="Preview" className="w-full max-h-48 object-cover rounded-xl mx-auto" />
+                  <p className="text-sm text-[#5a3e50]">Click to choose a different image</p>
+                </div>
+              ) : (
+                <div className="py-4">
+                  <Upload className="mx-auto text-[#ffa6cb] mb-3" size={32} />
+                  <p className="text-[#5a3e50] font-medium">Click to upload or drag &amp; drop</p>
+                  <p className="text-sm text-gray-400 mt-1">PNG, JPG, WEBP supported</p>
+                </div>
+              )}
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleInput} />
+            </div>
+
+            {preview && (
+              <div className="mt-4 space-y-3">
+                <input
+                  type="text"
+                  value={caption}
+                  onChange={e => setCaption(e.target.value)}
+                  placeholder="Photo caption (e.g. Book Drive 2024)"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-[#3a2a35] focus:outline-none focus:border-[#ffa6cb] text-sm"
+                />
+                <Button
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  className="w-full rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white h-11 font-semibold"
+                >
+                  {uploading ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 size={16} className="animate-spin" />
+                      Uploading to GitHub…
+                    </span>
+                  ) : 'Add to Gallery'}
+                </Button>
               </div>
             )}
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleInput} />
+
+            {uploadOk && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="mt-3 flex items-center gap-2 text-green-600 text-sm font-medium justify-center">
+                <CheckCircle size={16} /> Photo added to gallery!
+              </motion.div>
+            )}
+            {uploadErr && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                className="mt-3 flex items-center gap-2 text-red-500 text-sm font-medium justify-center">
+                <AlertCircle size={16} /> {uploadErr}
+              </motion.div>
+            )}
           </div>
 
-          {/* Caption */}
-          {preview && (
-            <input
-              type="text"
-              value={caption}
-              onChange={e => setCaption(e.target.value)}
-              placeholder="Caption (e.g. Book Drive 2024)"
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-[#3a2a35] focus:outline-none focus:border-[#ffa6cb] text-sm"
-            />
-          )}
+          {/* ── Gallery Photos ── */}
+          <div>
+            <h4 className="font-semibold text-[#3a2a35] mb-4 flex items-center gap-2">
+              <Camera size={18} className="text-[#84caed]" />
+              Gallery Photos ({photos.length})
+            </h4>
+            {photos.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-6 border-2 border-dashed border-gray-100 rounded-2xl">
+                No photos yet. Add your first photo above!
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {photos.map(photo => (
+                  <div key={photo.src} className="relative group rounded-xl overflow-hidden aspect-square">
+                    <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                      <p className="text-white text-xs font-medium text-center line-clamp-2">{photo.caption}</p>
+                      <button
+                        onClick={() => handleDelete(photo.src)}
+                        disabled={deleting === photo.src}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors disabled:opacity-60"
+                      >
+                        {deleting === photo.src
+                          ? <Loader2 size={12} className="animate-spin" />
+                          : <Trash2 size={12} />}
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-          {/* Upload button */}
-          {preview && (
-            <Button
-              onClick={upload}
-              disabled={status === 'uploading'}
-              className="w-full rounded-full bg-[#ffa6cb] hover:bg-[#ff8ebc] text-white h-11 font-semibold"
-            >
-              {status === 'uploading' ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 size={16} className="animate-spin" />
-                  Uploading to GitHub…
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <ImagePlus size={16} />
-                  Publish Photo
-                </span>
-              )}
-            </Button>
-          )}
-
-          {/* Status messages */}
-          <AnimatePresence>
-            {status === 'done' && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="flex items-start gap-3 p-4 rounded-2xl bg-green-50 text-green-700"
+          {/* ── Book Counter ── */}
+          <div>
+            <h4 className="font-semibold text-[#3a2a35] mb-4 flex items-center gap-2">
+              <BookOpen size={18} className="text-[#c9a96e]" />
+              Books Collected Counter
+            </h4>
+            <p className="text-sm text-[#5a3e50] mb-3">Update the number shown on the "What We Do" page.</p>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={bookCountInput}
+                onChange={e => { setBookCountInput(e.target.value); setCountSaved(false); }}
+                onKeyDown={e => e.key === 'Enter' && saveBookCount()}
+                placeholder="e.g. 4000"
+                className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-[#3a2a35] focus:outline-none focus:border-[#c9a96e] text-base"
+              />
+              <Button
+                onClick={saveBookCount}
+                className="rounded-xl bg-[#c9a96e] hover:bg-[#b8935a] text-white px-6 h-12 font-semibold"
               >
-                <CheckCircle size={18} className="mt-0.5 shrink-0" />
-                <div className="text-sm">
-                  <p className="font-semibold">Photo published!</p>
-                  <p className="text-green-600 mt-0.5">
-                    Visible on this page right now. The full site deploy finishes in ~2 minutes.
-                  </p>
-                </div>
+                Save
+              </Button>
+            </div>
+            {countSaved && (
+              <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                className="mt-2 flex items-center gap-2 text-green-600 text-sm font-medium">
+                <CheckCircle size={15} /> Counter updated! Refresh the What We Do page to see it.
               </motion.div>
             )}
-            {status === 'error' && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="flex items-start gap-3 p-4 rounded-2xl bg-red-50 text-red-700"
-              >
-                <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                <div className="text-sm">
-                  <p className="font-semibold">Upload failed</p>
-                  <p className="text-red-600 mt-0.5">{errorMsg}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
 
-          <p className="text-xs text-center text-gray-400">
-            Photos are committed directly to GitHub and live immediately.
-          </p>
+          {/* Footer note */}
+          <div className="text-center pt-2 border-t border-gray-100">
+            <p className="text-xs text-gray-400">
+              Photos are committed to GitHub and go live for everyone immediately on refresh.
+            </p>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -365,16 +446,13 @@ function DevPanel({
 
 // ── Main Photos Page ──────────────────────────────────────────────────────────
 export default function Photos() {
-  const [photos, setPhotos]             = useState<GalleryPhoto[]>([]);
+  const [photos, setPhotos]               = useState<GalleryPhoto[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [showLogin, setShowLogin]       = useState(false);
-  const [showPanel, setShowPanel]       = useState(false);
-  const [devToken, setDevToken]         = useState('');
+  const [showLogin, setShowLogin]         = useState(false);
+  const [showPanel, setShowPanel]         = useState(false);
+  const [devToken, setDevToken]           = useState('');
 
-  // Load gallery from GitHub on mount (runtime fetch — no rebuild needed)
-  useEffect(() => {
-    fetchGallery().then(setPhotos);
-  }, []);
+  useEffect(() => { fetchGallery().then(setPhotos); }, []);
 
   const handleDevClick = () => {
     const stored = getStoredToken();
@@ -388,10 +466,6 @@ export default function Photos() {
     setShowPanel(true);
   };
 
-  const handlePhotoAdded = (photo: GalleryPhoto) => {
-    setPhotos(prev => [...prev, photo]);
-  };
-
   const prev = () => setLightboxIndex(i => (i! + photos.length - 1) % photos.length);
   const next = () => setLightboxIndex(i => (i! + 1) % photos.length);
 
@@ -401,16 +475,15 @@ export default function Photos() {
 
       <AnimatePresence>
         {showLogin && (
-          <DevLoginModal
-            onSuccess={handleLoginSuccess}
-            onClose={() => setShowLogin(false)}
-          />
+          <DevLoginModal onSuccess={handleLoginSuccess} onClose={() => setShowLogin(false)} />
         )}
         {showPanel && (
           <DevPanel
             token={devToken}
+            photos={photos}
+            onAddPhoto={p => setPhotos(prev => [...prev, p])}
+            onDeletePhoto={src => setPhotos(prev => prev.filter(p => p.src !== src))}
             onClose={() => setShowPanel(false)}
-            onPhotoAdded={handlePhotoAdded}
           />
         )}
 
@@ -430,20 +503,20 @@ export default function Photos() {
             </button>
             {photos.length > 1 && (
               <>
-                <button className="absolute left-4 text-white/70 hover:text-white p-2" onClick={e => { e.stopPropagation(); prev(); }}>
+                <button className="absolute left-4 text-white/70 hover:text-white p-2"
+                  onClick={e => { e.stopPropagation(); prev(); }}>
                   <ChevronLeft size={36} />
                 </button>
-                <button className="absolute right-4 text-white/70 hover:text-white p-2" onClick={e => { e.stopPropagation(); next(); }}>
+                <button className="absolute right-4 text-white/70 hover:text-white p-2"
+                  onClick={e => { e.stopPropagation(); next(); }}>
                   <ChevronRight size={36} />
                 </button>
               </>
             )}
             <motion.div
               key={lightboxIndex}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
               className="max-w-4xl w-full flex flex-col items-center gap-4"
               onClick={e => e.stopPropagation()}
             >
@@ -497,8 +570,7 @@ export default function Photos() {
                 >
                   <div className="relative">
                     <img
-                      src={photo.src}
-                      alt={photo.caption}
+                      src={photo.src} alt={photo.caption}
                       className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 rounded-2xl" />
@@ -515,8 +587,10 @@ export default function Photos() {
 
           <div className="mt-16 text-center">
             <p className="text-[#5a3e50] mb-4">Follow us on Instagram for more photos and updates!</p>
-            <Button asChild variant="outline" size="lg" className="rounded-full border-2 border-[#ffa6cb] text-[#3a2a35] hover:bg-[#ffa6cb] hover:text-white px-8 h-12 font-semibold bg-transparent">
-              <a href="https://www.instagram.com/bookfairiesgeorgia" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2">
+            <Button asChild variant="outline" size="lg"
+              className="rounded-full border-2 border-[#ffa6cb] text-[#3a2a35] hover:bg-[#ffa6cb] hover:text-white px-8 h-12 font-semibold bg-transparent">
+              <a href="https://www.instagram.com/bookfairiesgeorgia" target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-2">
                 <Instagram size={18} />@bookfairiesgeorgia
               </a>
             </Button>
