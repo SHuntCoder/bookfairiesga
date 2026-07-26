@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import Nav from '@/components/Nav';
 import Footer from '@/components/Footer';
+import { BFError, formatBFError } from '@/lib/errors';
 
 // ── GitHub config ─────────────────────────────────────────────────────────────
 const OWNER        = 'SHuntCoder';
@@ -64,7 +65,7 @@ async function githubPut(
     }
   );
   const json = await r.json();
-  if (!r.ok) throw new Error(json.message ?? 'GitHub API error');
+  if (!r.ok) throw new BFError('BF-401', json.message);
   return json;
 }
 
@@ -77,7 +78,7 @@ async function githubDelete(path: string, sha: string, message: string) {
       body: JSON.stringify({ message, sha, branch: BRANCH }),
     }
   );
-  if (!r.ok) { const j = await r.json(); throw new Error(j.message ?? 'GitHub delete error'); }
+  if (!r.ok) { const j = await r.json(); throw new BFError('BF-401', j.message); }
 }
 
 function toBase64(str: string) {
@@ -123,7 +124,7 @@ async function withFreshSha<T>(
       throw err;
     }
   }
-  throw lastErr;
+  throw new BFError('BF-402');
 }
 
 // ── Dev Login Modal ───────────────────────────────────────────────────────────
@@ -136,7 +137,7 @@ function DevLoginModal({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password !== DEV_PASSWORD) { setError('Incorrect password.'); setPassword(''); return; }
+    if (password !== DEV_PASSWORD) { setError(new BFError('BF-101').label); setPassword(''); return; }
     onSuccess();
   };
 
@@ -273,7 +274,7 @@ function DevPanel({
       setUploadOk(true);
       setTimeout(() => setUploadOk(false), 3000);
     } catch (err) {
-      setUploadErr(err instanceof Error ? err.message : 'Upload failed. Please try again.');
+      setUploadErr(formatBFError(err, 'BF-202'));
     } finally {
       setUploading(false);
     }
@@ -304,7 +305,7 @@ function DevPanel({
       } catch { /* image delete is non-critical */ }
       onDeletePhoto(src);
     } catch (err) {
-      setDeleteErr(err instanceof Error ? err.message : 'Delete failed. Please try again.');
+      setDeleteErr(formatBFError(err, 'BF-203'));
     } finally {
       setDeleting(null);
     }
