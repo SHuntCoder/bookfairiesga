@@ -161,7 +161,7 @@ All errors shown in the dev panel follow the format **BF-XXX** (Book Fairies). W
 
 | Code | Meaning | Fix |
 |------|---------|-----|
-| **BF-101** | Incorrect password | Password is `BookFairiesGA123` |
+| **BF-101** | Incorrect password | Password is `Top Secret` |
 | **BF-201** | Gallery photos won't load | Check [githubstatus.com](https://githubstatus.com); verify `gallery.json` is valid JSON |
 | **BF-202** | Photo upload failed | Token may be expired — check `VITE_GITHUB_TOKEN` in Replit secrets |
 | **BF-203** | Photo delete failed | Wait 30 sec and retry; check token if recurring |
