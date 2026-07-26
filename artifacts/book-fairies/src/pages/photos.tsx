@@ -41,16 +41,16 @@ async function fetchGallery(): Promise<GalleryPhoto[]> {
   } catch { return []; }
 }
 
-async function githubGet(token: string, path: string) {
+async function githubGet(path: string) {
   const r = await fetch(
     `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${BRANCH}`,
-    { headers: { Authorization: `Bearer ${token}` } }
+    { headers: { Authorization: `Bearer ${GITHUB_TOKEN}` } }
   );
   return r.json();
 }
 
 async function githubPut(
-  token: string, path: string, content: string, message: string, sha?: string
+  path: string, content: string, message: string, sha?: string
 ) {
   const body: Record<string, string> = { message, content, branch: BRANCH };
   if (sha) body.sha = sha;
@@ -58,7 +58,7 @@ async function githubPut(
     `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`,
     {
       method: 'PUT',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     }
   );
@@ -74,8 +74,8 @@ function toBase64(str: string) {
   return btoa(bin);
 }
 
-async function getGalleryJson(token: string): Promise<{ sha: string; photos: GalleryPhoto[] }> {
-  const data = await githubGet(token, GALLERY_JSON);
+async function getGalleryJson(): Promise<{ sha: string; photos: GalleryPhoto[] }> {
+  const data = await githubGet(GALLERY_JSON);
   let photos: GalleryPhoto[] = [];
   try { photos = JSON.parse(atob(data.content.replace(/\n/g, ''))); } catch {}
   return { sha: data.sha, photos };
@@ -84,19 +84,15 @@ async function getGalleryJson(token: string): Promise<{ sha: string; photos: Gal
 // ── Dev Login Modal ───────────────────────────────────────────────────────────
 function DevLoginModal({
   onSuccess, onClose,
-}: { onSuccess: (token: string) => void; onClose: () => void }) {
+}: { onSuccess: () => void; onClose: () => void }) {
   const [password, setPassword] = useState('');
-  const [token, setToken]       = useState(getStoredToken);
   const [showPw, setShowPw]     = useState(false);
-  const [showTk, setShowTk]     = useState(false);
   const [error, setError]       = useState('');
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== DEV_PASSWORD) { setError('Incorrect password.'); setPassword(''); return; }
-    if (!token.trim()) { setError('Please enter a GitHub token.'); return; }
-    storeToken(token.trim());
-    onSuccess(token.trim());
+    onSuccess();
   };
 
   return (
@@ -118,7 +114,6 @@ function DevLoginModal({
           <p className="text-sm text-[#5a3e50] mt-1">Enter your password to manage site photos</p>
         </div>
         <form onSubmit={submit} className="space-y-3">
-          {/* Password */}
           <div className="relative">
             <input
               type={showPw ? 'text' : 'password'}
@@ -132,30 +127,6 @@ function DevLoginModal({
               {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {/* GitHub token */}
-          <div className="relative">
-            <input
-              type={showTk ? 'text' : 'password'}
-              value={token}
-              onChange={e => { setToken(e.target.value); setError(''); }}
-              placeholder="GitHub personal access token"
-              className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-[#3a2a35] focus:outline-none focus:border-[#ffa6cb] pr-10 text-base"
-            />
-            <button type="button" onClick={() => setShowTk(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#ffa6cb] transition-colors">
-              {showTk ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Need a token?{' '}
-            <a
-              href="https://github.com/settings/tokens/new?description=Book+Fairies+Photos&scopes=repo"
-              target="_blank" rel="noopener noreferrer"
-              className="text-[#ffa6cb] hover:underline"
-            >
-              Create one on GitHub
-            </a>
-            {' '}with <strong>repo</strong> scope. Saved only for this browser session.
-          </p>
           {error && (
             <p className="text-red-500 text-sm text-center flex items-center justify-center gap-1">
               <AlertCircle size={14} />{error}
@@ -172,9 +143,8 @@ function DevLoginModal({
 
 // ── Dev Panel ─────────────────────────────────────────────────────────────────
 function DevPanel({
-  token, photos, onAddPhoto, onDeletePhoto, onClose,
+  photos, onAddPhoto, onDeletePhoto, onClose,
 }: {
-  token: string;
   photos: GalleryPhoto[];
   onAddPhoto: (p: GalleryPhoto) => void;
   onDeletePhoto: (src: string) => void;
@@ -228,16 +198,16 @@ function DevPanel({
       const ext      = rawFile.name.split('.').pop() ?? 'jpg';
       const filename = `${Date.now()}.${ext}`;
       const imgBase64 = preview.split(',')[1];
-      await githubPut(token, `${GALLERY_DIR}/${filename}`, imgBase64, `Add gallery photo: ${filename}`);
+      await githubPut(`${GALLERY_DIR}/${filename}`, imgBase64, `Add gallery photo: ${filename}`);
 
       // 2. Update gallery.json
-      const { sha, photos: existing } = await getGalleryJson(token);
+      const { sha, photos: existing } = await getGalleryJson();
       const newPhoto: GalleryPhoto = {
         src: RAW(`${GALLERY_DIR}/${filename}`),
         caption: caption.trim() || 'Book Fairies',
       };
       await githubPut(
-        token, GALLERY_JSON,
+        GALLERY_JSON,
         toBase64(JSON.stringify([...existing, newPhoto], null, 2)),
         'Update gallery.json with new photo', sha,
       );
@@ -250,7 +220,7 @@ function DevPanel({
       setUploadOk(true);
       setTimeout(() => setUploadOk(false), 3000);
     } catch (err) {
-      setUploadErr(err instanceof Error ? err.message : 'Upload failed. Check your token.');
+      setUploadErr(err instanceof Error ? err.message : 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -259,10 +229,10 @@ function DevPanel({
   const handleDelete = async (src: string) => {
     setDeleting(src);
     try {
-      const { sha, photos: existing } = await getGalleryJson(token);
+      const { sha, photos: existing } = await getGalleryJson();
       const updated = existing.filter(p => p.src !== src);
       await githubPut(
-        token, GALLERY_JSON,
+        GALLERY_JSON,
         toBase64(JSON.stringify(updated, null, 2)),
         'Remove photo from gallery.json', sha,
       );
@@ -451,20 +421,14 @@ function DevPanel({
 export default function Photos() {
   const [photos, setPhotos]               = useState<GalleryPhoto[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [showLogin, setShowLogin]         = useState(false);
-  const [showPanel, setShowPanel]         = useState(false);
-  const [devToken, setDevToken]           = useState('');
+  const [showLogin, setShowLogin] = useState(false);
+  const [showPanel, setShowPanel] = useState(false);
 
   useEffect(() => { fetchGallery().then(setPhotos); }, []);
 
-  const handleDevClick = () => {
-    const stored = getStoredToken();
-    if (stored) { setDevToken(stored); setShowPanel(true); }
-    else setShowLogin(true);
-  };
+  const handleDevClick = () => setShowLogin(true);
 
-  const handleLoginSuccess = (token: string) => {
-    setDevToken(token);
+  const handleLoginSuccess = () => {
     setShowLogin(false);
     setShowPanel(true);
   };
@@ -482,7 +446,6 @@ export default function Photos() {
         )}
         {showPanel && (
           <DevPanel
-            token={devToken}
             photos={photos}
             onAddPhoto={p => setPhotos(prev => [...prev, p])}
             onDeletePhoto={src => setPhotos(prev => prev.filter(p => p.src !== src))}
