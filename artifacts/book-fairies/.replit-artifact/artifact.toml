@@ -1,0 +1,27 @@
+kind = "web"
+previewPath = "/"
+title = "Book Fairies"
+version = "1.0.0"
+id = "artifacts/book-fairies"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22601
+
+[services.development]
+run = "pnpm --filter @workspace/book-fairies run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/book-fairies", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/book-fairies/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22601"
+BASE_PATH = "/"
