@@ -1,0 +1,47 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: PORT=3000 BASE_PATH=/ pnpm --filter @workspace/book-fairies run build
+
+      - name: Copy index.html → 404.html for SPA routing
+        run: cp artifacts/book-fairies/dist/public/index.html artifacts/book-fairies/dist/public/404.html
+
+      - name: Add CNAME
+        run: echo "bookfairiesga.com" > artifacts/book-fairies/dist/public/CNAME
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: artifacts/book-fairies/dist/public
+          force_orphan: true
+          cname: bookfairiesga.com
