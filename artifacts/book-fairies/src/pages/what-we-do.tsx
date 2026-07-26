@@ -27,11 +27,20 @@ function useCountUp(target: number, duration = 2000, start = false) {
   return count;
 }
 
+const BOOK_COUNT_URL =
+  'https://raw.githubusercontent.com/SHuntCoder/bookfairiesga/main/artifacts/book-fairies/src/book-count.json';
+
 export default function WhatWeDo() {
   const counterRef = useRef<HTMLDivElement>(null);
   const [counterVisible, setCounterVisible] = useState(false);
-  const stored = typeof window !== 'undefined' ? Number(localStorage.getItem('bookfairies_book_count') || 4000) : 4000;
-  const bookCount = useCountUp(stored, 2200, counterVisible);
+  const [bookCountValue, setBookCountValue] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetch(`${BOOK_COUNT_URL}?t=${Date.now()}`)
+      .then(r => r.json())
+      .then(d => setBookCountValue(d.count ?? 4000))
+      .catch(() => setBookCountValue(4000));
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,6 +50,8 @@ export default function WhatWeDo() {
     if (counterRef.current) observer.observe(counterRef.current);
     return () => observer.disconnect();
   }, []);
+
+  const bookCount = useCountUp(bookCountValue ?? 4000, 2200, counterVisible && bookCountValue !== null);
 
   return (
     <div className="min-h-[100dvh] w-full flex flex-col font-sans overflow-x-hidden">

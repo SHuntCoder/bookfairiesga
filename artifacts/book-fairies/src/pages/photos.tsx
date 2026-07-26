@@ -13,8 +13,9 @@ import Footer from '@/components/Footer';
 const OWNER        = 'SHuntCoder';
 const REPO         = 'bookfairiesga';
 const BRANCH       = 'main';
-const GALLERY_JSON = 'artifacts/book-fairies/src/gallery.json';
-const GALLERY_DIR  = 'artifacts/book-fairies/public/gallery';
+const GALLERY_JSON    = 'artifacts/book-fairies/src/gallery.json';
+const GALLERY_DIR     = 'artifacts/book-fairies/public/gallery';
+const BOOK_COUNT_JSON = 'artifacts/book-fairies/src/book-count.json';
 
 const RAW = (path: string) =>
   `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${path}`;
@@ -79,6 +80,13 @@ async function getGalleryJson(): Promise<{ sha: string; photos: GalleryPhoto[] }
   let photos: GalleryPhoto[] = [];
   try { photos = JSON.parse(atob(data.content.replace(/\n/g, ''))); } catch {}
   return { sha: data.sha, photos };
+}
+
+async function getBookCountJson(): Promise<{ sha: string; count: number }> {
+  const data = await githubGet(BOOK_COUNT_JSON);
+  let count = 4000;
+  try { count = JSON.parse(atob(data.content.replace(/\n/g, ''))).count ?? 4000; } catch {}
+  return { sha: data.sha, count };
 }
 
 // ── Dev Login Modal ───────────────────────────────────────────────────────────
@@ -163,10 +171,13 @@ function DevPanel({
   const [deleting, setDeleting]   = useState<string | null>(null);
 
   // Book count state
-  const [bookCountInput, setBookCountInput] = useState<string>(
-    () => localStorage.getItem('bookfairies_book_count') || '4000'
-  );
-  const [countSaved, setCountSaved] = useState(false);
+  const [bookCountInput, setBookCountInput] = useState<string>('4000');
+  const [countSaving, setCountSaving]       = useState(false);
+  const [countSaved, setCountSaved]         = useState(false);
+
+  useEffect(() => {
+    getBookCountJson().then(({ count }) => setBookCountInput(count.toLocaleString())).catch(() => {});
+  }, []);
 
   const loadFile = (file: File) => {
     if (!file.type.startsWith('image/')) return;
@@ -245,13 +256,24 @@ function DevPanel({
     }
   };
 
-  const saveBookCount = () => {
+  const saveBookCount = async () => {
     const num = parseInt(bookCountInput.replace(/,/g, ''), 10);
-    if (!isNaN(num) && num >= 0) {
-      localStorage.setItem('bookfairies_book_count', String(num));
+    if (isNaN(num) || num < 0) return;
+    setCountSaving(true);
+    try {
+      const { sha } = await getBookCountJson();
+      await githubPut(
+        BOOK_COUNT_JSON,
+        toBase64(JSON.stringify({ count: num }, null, 2)),
+        `Update book count to ${num}`, sha,
+      );
       setBookCountInput(num.toLocaleString());
       setCountSaved(true);
       setTimeout(() => setCountSaved(false), 2000);
+    } catch {
+      // silently fail — input stays editable
+    } finally {
+      setCountSaving(false);
     }
   };
 
@@ -392,15 +414,16 @@ function DevPanel({
               />
               <Button
                 onClick={saveBookCount}
-                className="rounded-xl bg-[#c9a96e] hover:bg-[#b8935a] text-white px-6 h-12 font-semibold"
+                disabled={countSaving}
+                className="rounded-xl bg-[#c9a96e] hover:bg-[#b8935a] text-white px-6 h-12 font-semibold disabled:opacity-60"
               >
-                Save
+                {countSaving ? 'Saving…' : 'Save'}
               </Button>
             </div>
             {countSaved && (
               <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
                 className="mt-2 flex items-center gap-2 text-green-600 text-sm font-medium">
-                <CheckCircle size={15} /> Counter updated! Refresh the What We Do page to see it.
+                <CheckCircle size={15} /> Counter updated! Visible on the site within ~2 minutes.
               </motion.div>
             )}
           </div>
