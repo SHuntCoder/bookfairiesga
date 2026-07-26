@@ -1,6 +1,6 @@
-import { Mail, Facebook, Instagram } from 'lucide-react';
+import { Mail, Facebook, Instagram, Lock } from 'lucide-react';
 
-export default function Footer() {
+export default function Footer({ onDevClick }: { onDevClick?: () => void }) {
   return (
     <footer id="contact" className="bg-[#3a2a35] pt-20 pb-8 text-white border-t-8 border-[#ffa6cb]">
       <div className="max-w-4xl mx-auto px-6 text-center mb-16">
@@ -30,8 +30,17 @@ export default function Footer() {
           </a>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500 border-t border-white/10 pt-8">
+      <div className="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500 border-t border-white/10 pt-8 flex flex-col items-center gap-3">
         <p>© {new Date().getFullYear()} Book Fairies · Fulton County, Georgia · Creating Passion One Page at a Time</p>
+        {onDevClick && (
+          <button
+            onClick={onDevClick}
+            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-400 transition-colors"
+          >
+            <Lock size={11} />
+            Developer Login
+          </button>
+        )}
       </div>
     </footer>
   );
