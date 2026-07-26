@@ -1,11 +1,6 @@
-import { Mail, Facebook, Instagram, Lock } from 'lucide-react';
+import { Mail, Facebook, Instagram } from 'lucide-react';
 
-interface FooterProps {
-  devAuthed?: boolean;
-  onDevClick?: () => void;
-}
-
-export default function Footer({ devAuthed, onDevClick }: FooterProps) {
+export default function Footer() {
   return (
     <footer id="contact" className="bg-[#3a2a35] pt-20 pb-8 text-white border-t-8 border-[#ffa6cb]">
       <div className="max-w-4xl mx-auto px-6 text-center mb-16">
@@ -35,18 +30,8 @@ export default function Footer({ devAuthed, onDevClick }: FooterProps) {
           </a>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500 border-t border-white/10 pt-8 flex flex-col items-center gap-3">
+      <div className="max-w-7xl mx-auto px-6 text-center text-sm text-gray-500 border-t border-white/10 pt-8">
         <p>© {new Date().getFullYear()} Book Fairies · Fulton County, Georgia · Creating Passion One Page at a Time</p>
-        {onDevClick && (
-          <button
-            onClick={onDevClick}
-            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-400 transition-colors"
-            data-testid="dev-login-button"
-          >
-            <Lock size={11} />
-            {devAuthed ? 'Manage Photos' : 'Developer Login'}
-          </button>
-        )}
       </div>
     </footer>
   );
