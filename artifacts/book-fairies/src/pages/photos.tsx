@@ -68,6 +68,18 @@ async function githubPut(
   return json;
 }
 
+async function githubDelete(path: string, sha: string, message: string) {
+  const r = await fetch(
+    `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`,
+    {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, sha, branch: BRANCH }),
+    }
+  );
+  if (!r.ok) { const j = await r.json(); throw new Error(j.message ?? 'GitHub delete error'); }
+}
+
 function toBase64(str: string) {
   const bytes = new TextEncoder().encode(str);
   let bin = '';
@@ -169,6 +181,7 @@ function DevPanel({
 
   // Delete state
   const [deleting, setDeleting]   = useState<string | null>(null);
+  const [deleteErr, setDeleteErr] = useState('');
 
   // Book count state
   const [bookCountInput, setBookCountInput] = useState<string>('4000');
@@ -239,7 +252,9 @@ function DevPanel({
 
   const handleDelete = async (src: string) => {
     setDeleting(src);
+    setDeleteErr('');
     try {
+      // 1. Remove from gallery.json
       const { sha, photos: existing } = await getGalleryJson();
       const updated = existing.filter(p => p.src !== src);
       await githubPut(
@@ -247,10 +262,16 @@ function DevPanel({
         toBase64(JSON.stringify(updated, null, 2)),
         'Remove photo from gallery.json', sha,
       );
+      // 2. Delete the image file itself (best-effort — don't block on failure)
+      try {
+        const filename = src.split('/').pop()!;
+        const imgPath  = `${GALLERY_DIR}/${filename}`;
+        const imgData  = await githubGet(imgPath);
+        if (imgData.sha) await githubDelete(imgPath, imgData.sha, `Delete gallery photo: ${filename}`);
+      } catch { /* image delete is non-critical */ }
       onDeletePhoto(src);
-    } catch {
-      // silently ignore — optimistic UI still removes from state via onDeletePhoto
-      onDeletePhoto(src);
+    } catch (err) {
+      setDeleteErr(err instanceof Error ? err.message : 'Delete failed. Please try again.');
     } finally {
       setDeleting(null);
     }
@@ -373,26 +394,33 @@ function DevPanel({
                 No photos yet. Add your first photo above!
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {photos.map(photo => (
-                  <div key={photo.src} className="relative group rounded-xl overflow-hidden aspect-square">
-                    <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
-                      <p className="text-white text-xs font-medium text-center line-clamp-2">{photo.caption}</p>
-                      <button
-                        onClick={() => handleDelete(photo.src)}
-                        disabled={deleting === photo.src}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors disabled:opacity-60"
-                      >
-                        {deleting === photo.src
-                          ? <Loader2 size={12} className="animate-spin" />
-                          : <Trash2 size={12} />}
-                        Remove
-                      </button>
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {photos.map(photo => (
+                    <div key={photo.src} className="relative group rounded-xl overflow-hidden aspect-square">
+                      <img src={photo.src} alt={photo.caption} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                        <p className="text-white text-xs font-medium text-center line-clamp-2">{photo.caption}</p>
+                        <button
+                          onClick={() => handleDelete(photo.src)}
+                          disabled={deleting === photo.src}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white text-xs font-semibold transition-colors disabled:opacity-60"
+                        >
+                          {deleting === photo.src
+                            ? <Loader2 size={12} className="animate-spin" />
+                            : <Trash2 size={12} />}
+                          Remove
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+                {deleteErr && (
+                  <p className="mt-2 flex items-center gap-2 text-red-500 text-sm">
+                    <AlertCircle size={14} />{deleteErr}
+                  </p>
+                )}
+              </>
             )}
           </div>
 
