@@ -101,6 +101,31 @@ async function getBookCountJson(): Promise<{ sha: string; count: number }> {
   return { sha: data.sha, count };
 }
 
+// Retries a GitHub write when the file SHA is stale (conflict / "does not match" error).
+async function withFreshSha<T>(
+  fetcher: () => Promise<{ sha: string } & T>,
+  writer: (sha: string, extra: T) => Promise<void>,
+  retries = 3,
+): Promise<void> {
+  let lastErr: unknown;
+  for (let i = 0; i < retries; i++) {
+    const { sha, ...extra } = await fetcher();
+    try {
+      await writer(sha, extra as T);
+      return;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('does not match') || msg.includes('conflict')) {
+        lastErr = err;
+        await new Promise(r => setTimeout(r, 600 * (i + 1)));
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr;
+}
+
 // ── Dev Login Modal ───────────────────────────────────────────────────────────
 function DevLoginModal({
   onSuccess, onClose,
@@ -224,16 +249,20 @@ function DevPanel({
       const imgBase64 = preview.split(',')[1];
       await githubPut(`${GALLERY_DIR}/${filename}`, imgBase64, `Add gallery photo: ${filename}`);
 
-      // 2. Update gallery.json
-      const { sha, photos: existing } = await getGalleryJson();
+      // 2. Update gallery.json (with retry on stale SHA)
       const newPhoto: GalleryPhoto = {
         src: RAW(`${GALLERY_DIR}/${filename}`),
         caption: caption.trim() || 'Book Fairies',
       };
-      await githubPut(
-        GALLERY_JSON,
-        toBase64(JSON.stringify([...existing, newPhoto], null, 2)),
-        'Update gallery.json with new photo', sha,
+      await withFreshSha(
+        getGalleryJson,
+        async (sha, { photos: existing }) => {
+          await githubPut(
+            GALLERY_JSON,
+            toBase64(JSON.stringify([...existing, newPhoto], null, 2)),
+            'Update gallery.json with new photo', sha,
+          );
+        },
       );
 
       onAddPhoto(newPhoto);
@@ -254,13 +283,17 @@ function DevPanel({
     setDeleting(src);
     setDeleteErr('');
     try {
-      // 1. Remove from gallery.json
-      const { sha, photos: existing } = await getGalleryJson();
-      const updated = existing.filter(p => p.src !== src);
-      await githubPut(
-        GALLERY_JSON,
-        toBase64(JSON.stringify(updated, null, 2)),
-        'Remove photo from gallery.json', sha,
+      // 1. Remove from gallery.json (with retry on stale SHA)
+      await withFreshSha(
+        getGalleryJson,
+        async (sha, { photos: existing }) => {
+          const updated = existing.filter(p => p.src !== src);
+          await githubPut(
+            GALLERY_JSON,
+            toBase64(JSON.stringify(updated, null, 2)),
+            'Remove photo from gallery.json', sha,
+          );
+        },
       );
       // 2. Delete the image file itself (best-effort — don't block on failure)
       try {
@@ -282,11 +315,15 @@ function DevPanel({
     if (isNaN(num) || num < 0) return;
     setCountSaving(true);
     try {
-      const { sha } = await getBookCountJson();
-      await githubPut(
-        BOOK_COUNT_JSON,
-        toBase64(JSON.stringify({ count: num }, null, 2)),
-        `Update book count to ${num}`, sha,
+      await withFreshSha(
+        getBookCountJson,
+        async (sha) => {
+          await githubPut(
+            BOOK_COUNT_JSON,
+            toBase64(JSON.stringify({ count: num }, null, 2)),
+            `Update book count to ${num}`, sha,
+          );
+        },
       );
       setBookCountInput(num.toLocaleString());
       setCountSaved(true);
